@@ -1,0 +1,71 @@
+version: "3.4"
+
+services:
+  postgres:
+    image: postgres:12.2-alpine
+    volumes:
+      - nanadata:/var/lib/postgresql/data
+    env_file:
+      - arnheim.env
+  redis:
+    image: redis:latest
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - arnheim.env
+      - development.env
+    links:
+      - postgres
+      - redis
+  oslo:
+    image: jhnnsrs/bergen
+    command: python manage.py runoslo
+    env_file:
+      - arnheim.env
+      - development.env
+    links:
+      - redis
+      - web
+  verge:
+    image: jhnnsrs/verge
+    volumes:
+      - media:/media
+    links:
+      - web
+    labels:
+      - "traefik.http.routers.verge.rule=Host(`localhost`)"
+  minio:
+    image: "minio/minio"
+    command: server /export
+    environment:
+      MINIO_ACCESS_KEY: weak_access_key
+      MINIO_SECRET_KEY: weak_secret_key
+    labels:
+      - "traefik.http.routers.minio.rule=PathPrefix(`/minio`) || Host(`minio.localhost`)"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+    volumes:
+        - objects:/export
+  traefik:
+    image: traefik:v2.2
+    command:
+      - --api.dashboard=true
+      - --entrypoints.web.address=:80
+      - --providers.docker=true
+    ports:
+      - "80:80"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.http.routers.api.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=jhnnsrs:$$apr1$$xqe3h46w$$7j.Q4aQUwU7UM3uua56Y8/"
+
+volumes:
+  vscode:
+  nanadata:
+  objects:
+  media:
+  files:
