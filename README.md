@@ -1,4 +1,3 @@
-<img src="./images/arnheim.svg" height="100"/>
 
 #### Consider this a preview, as the ineptly norwegian codenames might suggest
 
