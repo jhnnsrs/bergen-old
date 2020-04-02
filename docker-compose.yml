@@ -18,15 +18,6 @@ services:
     links:
       - postgres
       - redis
-  oslo:
-    image: jhnnsrs/bergen
-    command: python manage.py runoslo
-    env_file:
-      - arnheim.env
-      - development.env
-    links:
-      - redis
-      - web
   verge:
     image: jhnnsrs/verge
     volumes:
@@ -38,9 +29,8 @@ services:
   minio:
     image: "minio/minio"
     command: server /export
-    environment:
-      MINIO_ACCESS_KEY: weak_access_key
-      MINIO_SECRET_KEY: weak_secret_key
+    env_file:
+      - arnheim.env
     labels:
       - "traefik.http.routers.minio.rule=PathPrefix(`/minio`) || Host(`minio.localhost`)"
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
