@@ -1,16 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.db import models
 # Create your models here.
 from pandas import HDFStore
 
-from elements.managers import PandasManager, RepresentationManager, DelayedRepresentationManager, TransformationManager, \
-    DelayedTransformationManager, ROIManager
+from elements.managers import (DelayedRepresentationManager,
+                               DelayedTransformationManager, PandasManager,
+                               RepresentationManager, ROIManager,
+                               TransformationManager)
 from larvik.logging import get_module_logger
-from larvik.models import LarvikArrayProxy
+from larvik.models import LarvikArray
 
 logger = get_module_logger(__name__)
-from django.core import serializers
 
 def get_sentinel_user():
     return get_user_model().objects.get_or_create(username='deleted')[0]
@@ -145,7 +147,7 @@ class ChannelMap(object):
     pass
 
 
-class Representation(LarvikArrayProxy):
+class Representation(LarvikArray):
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     inputrep = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null= True)
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE,related_name='representations')
@@ -188,7 +190,7 @@ class ROI(models.Model):
     def __str__(self):
         return f"ROI created by {self.creator.username} on {self.representation.name}"
 
-class Transformation(LarvikArrayProxy):
+class Transformation(LarvikArray):
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     nodeid = models.CharField(max_length=400, null=True, blank=True)
     roi = models.ForeignKey(ROI, on_delete=models.CASCADE, related_name='transformations')
@@ -204,5 +206,3 @@ class Transformation(LarvikArrayProxy):
 
     def __str__(self):
         return self.name
-
-

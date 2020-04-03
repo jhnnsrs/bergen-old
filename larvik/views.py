@@ -3,17 +3,31 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse, FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.serializers import Serializer
-
+from rest_framework.schemas.openapi import AutoSchema
+import xarray as xr
 from larvik.logging import get_module_logger
+from larvik.models import LarvikArray
 from larvik.utils import UUIDEncoder
 
+from zarr.storage import array_meta_key, attrs_key, default_compressor, group_meta_key
+
+zarr_format = 2
+zarr_consolidated_format = 1
+zarr_metadata_key = '.zmetadata'
 channel_layer = get_channel_layer()
+
+api_array = "array"
+larvik_c = "c"
+
+
+
+
 
 class LarvikJobWrapper(object):
 
@@ -83,31 +97,175 @@ class LarvikViewSet(viewsets.ModelViewSet):
 
 
 class LarvikArrayViewSet(LarvikViewSet):
+    lookup_value_regex = '[^/]+'
 
-    def zarrSelect(self,request):
-        zarr: Zarr = self.get_object()
+    def arraySelect(self,request):
+        larvik: LarvikArray = self.get_object()
         query_params = request.query_params
-        array = zarr.array
+        array = larvik.array
         # We are trying to pass on selection params
         array = self.queryselect(array, query_params)
         return array
 
+    def datasetSelect(self,request):
+        larvik: LarvikArray = self.get_object()
+        query_params = request.query_params
+        dataset = larvik.dataset
+        return dataset
+
     def queryselect(self, array, query_params):
+        import larvik.extenders
         try:
-            array = array.sel(channel=query_params["channel"]) if "channel" in query_params else array
+            array = array.sel(c=query_params["c"]) if "c" in query_params else array
+            array = array.sel(t=query_params["t"]) if "t" in query_params else array
+            if "channel_name" in query_params:
+                s = f'Name == "{query_params["channel_name"]}"'
+                print(s)
+                c = array.biometa.channels.compute().query(s).index
+                array = array.sel(c= c)
         except Exception as e:
-            return APIException(e)
+            raise APIException(e)
         return array
 
     @action(methods=['get'], detail=True,
             url_path='shape', url_name='shape')
     def shape(self, request, pk):
         # We are trying to pass on selection params
-        array = self.zarrSelect(request)
-
+        array = self.arraySelect(request)
         answer = json.dumps(array.shape)
         response = HttpResponse(answer, content_type="application/json")
         return response
+
+    @action(methods=['get'], detail=True,
+            url_path='dims', url_name='dims')
+    def dims(self, request, pk):
+        # We are trying to pass on selection params
+        array = self.arraySelect(request)
+        answer = json.dumps(array.dims)
+        response = HttpResponse(answer, content_type="application/json")
+        return response
+
+
+
+    @action(methods=['get'], detail=True,
+            url_path='channels', url_name='channels')
+    def channels(self, request, pk):
+        # We are trying to pass on selection params
+        array = self.arraySelect(request)
+        answer = array.biometa.channels.compute().to_json(orient="records")
+        response = HttpResponse(answer, content_type="application/json")
+        return response
+
+    @action(methods=['get'], detail=True,
+            url_path='info', url_name='info')
+    def info(self, request, pk):
+        # We are trying to pass on selection params
+        array: xr.DataArray = self.arraySelect(request)
+        with xr.set_options(display_style='html'):
+            answer = array._repr_html_()
+        response = HttpResponse(answer,  content_type="text/html")
+        return response
+
+    def returnFile(self, key, subkey):
+        larvik: LarvikArray = self.get_object()
+        test = larvik.store.storage.open(f"{larvik.store.name}/{key}/{subkey}","rb")
+        return FileResponse(test)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/{zarr_metadata_key}', url_name=f'{api_array}/{zarr_metadata_key}')
+    def get_zmetadata(self, request, pk):
+        larvik: LarvikArray = self.get_object()
+        test = larvik.store.storage.open(f"{larvik.store.name}/{zarr_metadata_key}","r")
+        file_content = test.read()
+        test.close()
+
+        return HttpResponse(content=file_content, content_type="application/json")
+
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/{group_meta_key}', url_name=f'{api_array}/{group_meta_key}')
+    def get_zgroupdata(self, request, pk):
+        larvik: LarvikArray = self.get_object()
+        test = larvik.store.storage.open(f"{larvik.store.name}/{group_meta_key}","r")
+        file_content = test.read()
+        test.close()
+
+        return HttpResponse(content=file_content, content_type="application/json")
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/{attrs_key}', url_name=f'{api_array}/{attrs_key}')
+    def get_zattrs(self, request, pk):
+        larvik: LarvikArray = self.get_object()
+        test = larvik.store.storage.open(f"{larvik.store.name}/{attrs_key}","r")
+        file_content = test.read()
+        test.close()
+
+        return HttpResponse(content=file_content, content_type="application/json")
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/c/(?P<c_value>[^/]+)', url_name=f'{api_array}/c')
+    def get_c_key(self, request, c_value,  pk):
+        return self.returnFile("c",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/planes/(?P<c_value>[^/]+)', url_name=f'{api_array}/planes')
+    def get_planes_key(self, request, c_value,  pk):
+        return  self.returnFile("planes",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/channels/(?P<c_value>[^/]+)', url_name=f'{api_array}/channels')
+    def get_channels_key(self, request, c_value,  pk):
+        return  self.returnFile("channels",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/x/(?P<c_value>[^/]+)', url_name=f'{api_array}/x')
+    def get_x_key(self, request, c_value,  pk):
+        print(c_value)
+        return  self.returnFile("x",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/y/(?P<c_value>[^/]+)', url_name=f'{api_array}/y')
+    def get_y_key(self, request, c_value,  pk):
+        return  self.returnFile("y",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/z/(?P<c_value>[^/]+)', url_name=f'{api_array}/z')
+    def get_z_key(self, request, c_value,  pk):
+        return  self.returnFile("z",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/t/(?P<c_value>[^/]+)', url_name=f'{api_array}/t')
+    def get_t_key(self, request, c_value,  pk):
+        return  self.returnFile("t",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/physy/(?P<c_value>[^/]+)', url_name=f'{api_array}/physy')
+    def get_physy_key(self, request, c_value,  pk):
+        return  self.returnFile("physy",c_value)
+    
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/physx/(?P<c_value>[^/]+)', url_name=f'{api_array}/physx')
+    def get_physx_key(self, request, c_value,  pk):
+        return  self.returnFile("physx",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/physt/(?P<c_value>[^/]+)', url_name=f'{api_array}/physt')
+    def get_physt_key(self, request, c_value,  pk):
+        return  self.returnFile("physt",c_value)
+    
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/phsyz/(?P<c_value>[^/]+)', url_name=f'{api_array}/phsyz')
+    def get_physz_key(self, request, c_value,  pk):
+        return  self.returnFile("phsyz",c_value)
+
+    @action(methods=['get'], detail=True,
+            url_path=f'{api_array}/data/(?P<c_value>[^/]+)', url_name=f'{api_array}/data')
+    def get_data_key(self, request, c_value,  pk):
+        return  self.returnFile("data",c_value)
+
+
+
+
 
 
 class LarvikJobViewSet(LarvikViewSet):
@@ -143,4 +301,3 @@ class LarvikJobViewSet(LarvikViewSet):
         for nana in jobs:
             async_to_sync(channel_layer.send)(nana.channel, {"type": nana.actiontype, "data": nana.data,
                                                              "publishers": nana.actionpublishers, "job": nana.job})
-

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields.array import ArrayField
 from django.db import models
 
 from larvik.storage.s3 import ZarrStorage
@@ -14,3 +15,12 @@ class BioImageFileField(models.FileField):
 class StoreFileField(models.FileField):
     attr_class = XArrayStore
     description = "XArrayStore"
+
+
+class ShapeField(ArrayField):
+    pass
+
+
+class DimsField(ArrayField):
+    pass
+

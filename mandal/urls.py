@@ -44,7 +44,7 @@ import visualizers.routes
 
 
 # Rest Framework Routers
-router = routers.DefaultRouter()
+router = routers.SimpleRouter()
 router.registry.extend(social.routes.router.registry)
 router.registry.extend(drawing.routes.router.registry)
 router.registry.extend(elements.routes.router.registry)

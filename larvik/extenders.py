@@ -122,4 +122,4 @@ class MetaAccessor:
             plot = image.plot.imshow(ax= ax)
 
         ax.set_title(channelname)
-        return plot
+        return fig
