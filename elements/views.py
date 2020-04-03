@@ -4,12 +4,16 @@ import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from elements.models import Antibody, Sample, Experiment, ExperimentalGroup, Animal, FileMatchString, Representation, \
-    Transformation, ROI
-from elements.serializers import AntibodySerializer, SampleSerializer, ExperimentSerializer, \
-    ExperimentalGroupSerializer, AnimalSerializer, FileMatchStringSerializer, RepresentationSerializer, ROISerializer
-from larvik.views import LarvikViewSet
-
+from elements.models import (ROI, Animal, Antibody, Experiment,
+                             ExperimentalGroup, FileMatchString,
+                             Representation, Sample, Transformation)
+from elements.serializers import (AnimalSerializer, AntibodySerializer,
+                                  ExperimentalGroupSerializer,
+                                  ExperimentSerializer,
+                                  FileMatchStringSerializer,
+                                  RepresentationSerializer, ROISerializer,
+                                  SampleSerializer)
+from larvik.views import LarvikArrayViewSet, LarvikViewSet
 # Get an instance of a logger
 from transformers.serializers import TransformationSerializer
 
@@ -80,7 +84,7 @@ class ExperimentViewSet(LarvikViewSet):
     filter_fields = ("creator",)
 
 
-class RepresentationViewSet(LarvikViewSet):
+class RepresentationViewSet(LarvikArrayViewSet):
 
     queryset = Representation.objects.all()
     serializer_class = RepresentationSerializer
