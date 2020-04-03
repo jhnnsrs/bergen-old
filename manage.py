@@ -2,7 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-
+from django.conf import settings
 
 
 def main():
@@ -22,6 +22,7 @@ def main():
         raise ImportError(
             "No Larvik extensions Defined"
         ) from exc
+
 
     execute_from_command_line(sys.argv)
 

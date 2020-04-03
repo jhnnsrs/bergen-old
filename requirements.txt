@@ -31,3 +31,7 @@ lz4
 numcodecs
 dask[complete]==2.9.2
 markdown
+
+ptvsd
+pytest-django 
+pytest-asyncio

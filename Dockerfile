@@ -10,9 +10,9 @@ RUN pip install -r requirements.txt
 
 
 ENV PYTHONUNBUFFERED 1
-RUN mkdir /code
-ADD . /code
-WORKDIR /code
+RUN mkdir /bergen
+ADD . /bergen
+WORKDIR /bergen
 
 EXPOSE 8000
 CMD python manage.py runserver 0.0.0.0:8000
