@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
+from rest_framework.serializers import Serializer
 
 from larvik.logging import get_module_logger
 from larvik.utils import UUIDEncoder
@@ -22,6 +23,8 @@ class LarvikJobWrapper(object):
         self.job = job if job else data
         self.actionpublishers = actionpublishers
         self.channel = channel
+
+
 
 class LarvikViewSet(viewsets.ModelViewSet):
     # TODO: The stringpublishing is yet not working
@@ -79,7 +82,36 @@ class LarvikViewSet(viewsets.ModelViewSet):
         super().perform_destroy(instance)
 
 
+class LarvikArrayViewSet(LarvikViewSet):
+
+    def zarrSelect(self,request):
+        zarr: Zarr = self.get_object()
+        query_params = request.query_params
+        array = zarr.array
+        # We are trying to pass on selection params
+        array = self.queryselect(array, query_params)
+        return array
+
+    def queryselect(self, array, query_params):
+        try:
+            array = array.sel(channel=query_params["channel"]) if "channel" in query_params else array
+        except Exception as e:
+            return APIException(e)
+        return array
+
+    @action(methods=['get'], detail=True,
+            url_path='shape', url_name='shape')
+    def shape(self, request, pk):
+        # We are trying to pass on selection params
+        array = self.zarrSelect(request)
+
+        answer = json.dumps(array.shape)
+        response = HttpResponse(answer, content_type="application/json")
+        return response
+
+
 class LarvikJobViewSet(LarvikViewSet):
+
     actionpublishers = None  # this publishers will be send to the Action Handles and then they can send to the according
     channel = None
     actiontype = "startJob"
@@ -87,7 +119,7 @@ class LarvikJobViewSet(LarvikViewSet):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def preprocess_jobs(self, serializer):
+    def preprocess_jobs(self, serializer: Serializer):
         """ If you need to alter any data like creating an Model on the fly
          or create various jobs from one request, here is the place
          should return Array of Jobs that need executing"""
