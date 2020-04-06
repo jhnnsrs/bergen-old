@@ -1,29 +1,28 @@
 # Create your views here.
 import json
 
+import xarray as xr
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.http import HttpResponse, StreamingHttpResponse, FileResponse
+from django.http import FileResponse, HttpResponse, StreamingHttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
-from rest_framework.serializers import Serializer
 from rest_framework.schemas.openapi import AutoSchema
-import xarray as xr
+from rest_framework.serializers import Serializer
+from zarr.storage import (array_meta_key, attrs_key, default_compressor,
+                          group_meta_key)
+
 from larvik.logging import get_module_logger
 from larvik.models import LarvikArray
 from larvik.utils import UUIDEncoder
 
-from zarr.storage import array_meta_key, attrs_key, default_compressor, group_meta_key
-
-zarr_format = 2
-zarr_consolidated_format = 1
-zarr_metadata_key = '.zmetadata'
 channel_layer = get_channel_layer()
 
+# Zarr Specific Settings
+zarr_metadata_key = '.zmetadata'
 api_array = "array"
-larvik_c = "c"
 
 
 
@@ -113,7 +112,19 @@ class LarvikArrayViewSet(LarvikViewSet):
         dataset = larvik.dataset
         return dataset
 
-    def queryselect(self, array, query_params):
+    def queryselect(self, array: xr.DataArray, query_params: dict) -> xr.DataArray:
+        """Selects the Array Acording to some query parameters
+        
+        Arguments:
+            array {xr.DataArray} -- "The xr.DataArray to select from"
+            query_params {dict} -- "The params according to Django QueryDicts"
+        
+        Raises:
+            APIException: An APIExpection
+        
+        Returns:
+            xr.DataArray -- The selected xr.DataArray 
+        """
         import larvik.extenders
         try:
             array = array.sel(c=query_params["c"]) if "c" in query_params else array
@@ -166,7 +177,16 @@ class LarvikArrayViewSet(LarvikViewSet):
         response = HttpResponse(answer,  content_type="text/html")
         return response
 
-    def returnFile(self, key, subkey):
+    def returnFile(self, key: str, subkey: str) -> FileResponse:
+        """Returns the FIle in the Store as a File Response 
+        
+        Arguments:
+            key {string} -- key of the xr.Array Variable
+            subkey {string} -- subkey of the chunk
+        
+        Returns:
+            [FileResponse] -- The streaming HTTP FileReponse
+        """
         larvik: LarvikArray = self.get_object()
         test = larvik.store.storage.open(f"{larvik.store.name}/{key}/{subkey}","rb")
         return FileResponse(test)
@@ -203,66 +223,9 @@ class LarvikArrayViewSet(LarvikViewSet):
         return HttpResponse(content=file_content, content_type="application/json")
 
     @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/c/(?P<c_value>[^/]+)', url_name=f'{api_array}/c')
-    def get_c_key(self, request, c_value,  pk):
-        return self.returnFile("c",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/planes/(?P<c_value>[^/]+)', url_name=f'{api_array}/planes')
-    def get_planes_key(self, request, c_value,  pk):
-        return  self.returnFile("planes",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/channels/(?P<c_value>[^/]+)', url_name=f'{api_array}/channels')
-    def get_channels_key(self, request, c_value,  pk):
-        return  self.returnFile("channels",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/x/(?P<c_value>[^/]+)', url_name=f'{api_array}/x')
-    def get_x_key(self, request, c_value,  pk):
-        print(c_value)
-        return  self.returnFile("x",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/y/(?P<c_value>[^/]+)', url_name=f'{api_array}/y')
-    def get_y_key(self, request, c_value,  pk):
-        return  self.returnFile("y",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/z/(?P<c_value>[^/]+)', url_name=f'{api_array}/z')
-    def get_z_key(self, request, c_value,  pk):
-        return  self.returnFile("z",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/t/(?P<c_value>[^/]+)', url_name=f'{api_array}/t')
-    def get_t_key(self, request, c_value,  pk):
-        return  self.returnFile("t",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/physy/(?P<c_value>[^/]+)', url_name=f'{api_array}/physy')
-    def get_physy_key(self, request, c_value,  pk):
-        return  self.returnFile("physy",c_value)
-    
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/physx/(?P<c_value>[^/]+)', url_name=f'{api_array}/physx')
-    def get_physx_key(self, request, c_value,  pk):
-        return  self.returnFile("physx",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/physt/(?P<c_value>[^/]+)', url_name=f'{api_array}/physt')
-    def get_physt_key(self, request, c_value,  pk):
-        return  self.returnFile("physt",c_value)
-    
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/phsyz/(?P<c_value>[^/]+)', url_name=f'{api_array}/phsyz')
-    def get_physz_key(self, request, c_value,  pk):
-        return  self.returnFile("phsyz",c_value)
-
-    @action(methods=['get'], detail=True,
-            url_path=f'{api_array}/data/(?P<c_value>[^/]+)', url_name=f'{api_array}/data')
-    def get_data_key(self, request, c_value,  pk):
-        return  self.returnFile("data",c_value)
-
+            url_path=f'{api_array}/(?P<c_key>[^/.]+)/(?P<c_value>[^/]+)', url_name=f'{api_array}/arrayaccessor')
+    def get_data_key(self, request, c_key, c_value,  pk):
+        return  self.returnFile(c_key,c_value)
 
 
 

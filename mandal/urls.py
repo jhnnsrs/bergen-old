@@ -18,13 +18,14 @@ from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render
-from django.urls import path, include, re_path
+from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from graphene_django.views import GraphQLView
 from rest_framework import routers
 from rest_framework.schemas import get_schema_view
-
+from  django.contrib.admin.views.decorators import staff_member_required
 
 import answers.routes
 import bioconverter.routes
@@ -43,8 +44,11 @@ import transformers.routes
 import visualizers.routes
 
 
+class MyRouter(routers.DefaultRouter):
+    include_format_suffixes = False
+
 # Rest Framework Routers
-router = routers.SimpleRouter()
+router = MyRouter()
 router.registry.extend(social.routes.router.registry)
 router.registry.extend(drawing.routes.router.registry)
 router.registry.extend(elements.routes.router.registry)
@@ -68,10 +72,21 @@ def index(request):
         # Render that in the index template
     return render(request, "index-oslo.html")
 
+@login_required
+@staff_member_required
+def config(request):
+    from .modeselektor import ArnheimDefaults
+    import json
+    dafaults = ArnheimDefaults(initial=False)
+    dictionary = dafaults.__dict__
+    dictionary.pop("zarr_dtype")
+        # Render that in the index template
+    return render(request, "config.html", context={"config": dictionary})
 
 
 urlpatterns = [
     path('', index, name='index'),
+    url(r'^config$', config, name="config"),
     url(r'^accounts/', include('registration.backends.simple.urls')),
     url(r'^graphql$', GraphQLView.as_view(graphiql=True)),
     path('admin/', admin.site.urls),
@@ -87,4 +102,3 @@ urlpatterns = [
             extra_context={'schema_url':'openapi-schema'}
         ), name='redoc'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
