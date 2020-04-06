@@ -42,6 +42,7 @@ class ArnheimDefaults:
     s3_secret = NOTSET
     s3_host = NOTSET
     s3_port = NOTSET
+    s3_public_domain = NOTSET
 
     # Channel Layer
     channel_backend = "channels_redis.core.RedisChannelLayer"
@@ -123,11 +124,13 @@ class ArnheimDefaults:
         if storage == "S3":
             self.storage = "S3"
             self.storage_default = 'larvik.storage.s3.MediaStorage'
+            self.s3_public_domain = os.environ.get("S3_PUBLIC_DOMAIN", NOTSET)
             self.s3_host = os.environ.get("S3_HOST", "minio")
             self.s3_port = os.environ.get("S3_PORT", 9000)
             self.s3_key = os.environ.get("S3_KEY", "weak_access_key")
             self.s3_secret = os.environ.get("S3_SECRET", "weak_secret_key")
             self.log(f"Storing Files in S3 on Host {self.s3_host} at Port {self.s3_port}")
+            self.log(f"Accessible on Subdomains of {self.s3_public_domain}")
             self.log(f"Default Storage Class: {self.storage_default}")
             if self.debug:
                 self.log(f"AccessKey {self.s3_key}")
@@ -137,11 +140,13 @@ class ArnheimDefaults:
         if storage == "MINIO":
             self.storage = "S3"
             self.storage_default = 'larvik.storage.s3.MediaStorage'
+            self.s3_public_domain = os.environ.get("S3_PUBLIC_DOMAIN", "minio.localhost")
             self.s3_host = os.environ.get("MINIO_SERVICE_HOST", "minio")
             self.s3_port = os.environ.get("MINIO_SERVICE_PORT", 9000)
             self.s3_key = os.environ.get("MINIO_ACCESS_KEY", "weak_access_key")
             self.s3_secret = os.environ.get("MINIO_SECRET_KEY", "weak_secret_key")
             self.log(f"Storing Files in Minio on Host {self.s3_host} at Port {self.s3_port}")
+            self.log(f"Accessible on Subdomains of {self.s3_public_domain}")
             self.log(f"Default Storage Class: {self.storage_default}")
             if self.debug:
                 self.log(f"AccessKey {self.s3_key}")

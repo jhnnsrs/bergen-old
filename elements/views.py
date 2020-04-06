@@ -13,13 +13,13 @@ from elements.serializers import (AnimalSerializer, AntibodySerializer,
                                   FileMatchStringSerializer,
                                   RepresentationSerializer, ROISerializer,
                                   SampleSerializer)
-from larvik.views import LarvikArrayViewSet, LarvikViewSet
+from larvik.views import LarvikArrayMixIn
 # Get an instance of a logger
 from transformers.serializers import TransformationSerializer
-
+from trontheim.views import PublishingModelViewSet
 logger = logging.getLogger(__name__)
 
-class AntibodyViewSet(LarvikViewSet):
+class AntibodyViewSet(PublishingModelViewSet):
     """
     Returns a list of all **active** accounts in the system.
 
@@ -32,7 +32,7 @@ class AntibodyViewSet(LarvikViewSet):
     serializer_class = AntibodySerializer
     publishers = [["creator"]]
 
-class FileMatchStringViewSet(LarvikViewSet):
+class FileMatchStringViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -41,7 +41,7 @@ class FileMatchStringViewSet(LarvikViewSet):
     serializer_class = FileMatchStringSerializer
     publishers = [["creator"]]
 
-class AnimalViewSet(LarvikViewSet):
+class AnimalViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -51,7 +51,7 @@ class AnimalViewSet(LarvikViewSet):
     publishers = [["creator"],["experiment"]]
     filter_fields = ("creator", "name","experiment","experimentalgroup")
 
-class ExperimentalGroupViewSet(LarvikViewSet):
+class ExperimentalGroupViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -63,7 +63,7 @@ class ExperimentalGroupViewSet(LarvikViewSet):
 
 
 
-class SampleViewSet(LarvikViewSet):
+class SampleViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -75,7 +75,7 @@ class SampleViewSet(LarvikViewSet):
     filter_fields = ("creator","experiment","bioseries","experimentalgroup","bioseries__bioimage","bioseries__bioimage__locker")
 
 
-class ExperimentViewSet(LarvikViewSet):
+class ExperimentViewSet(PublishingModelViewSet):
     queryset = Experiment.objects.all()
     serializer_class = ExperimentSerializer
 
@@ -84,7 +84,7 @@ class ExperimentViewSet(LarvikViewSet):
     filter_fields = ("creator",)
 
 
-class RepresentationViewSet(LarvikArrayViewSet):
+class RepresentationViewSet(PublishingModelViewSet, LarvikArrayMixIn):
 
     queryset = Representation.objects.all()
     serializer_class = RepresentationSerializer
@@ -93,7 +93,7 @@ class RepresentationViewSet(LarvikArrayViewSet):
     filter_fields = ("sample",)
 
 
-class TransformationViewSet(LarvikViewSet):
+class TransformationViewSet(PublishingModelViewSet, LarvikArrayMixIn):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -103,7 +103,7 @@ class TransformationViewSet(LarvikViewSet):
     serializer_class = TransformationSerializer
 
 
-class RoiViewSet(LarvikViewSet):
+class RoiViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """

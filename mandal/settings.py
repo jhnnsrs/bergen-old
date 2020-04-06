@@ -57,6 +57,7 @@ MEDIA_ROOT = str(defaults.media_path)
 # S3 Settings
 
 #S3 Settings
+S3_PUBLIC_DOMAIN = defaults.s3_public_domain
 AWS_ACCESS_KEY_ID = defaults.s3_secret
 AWS_SECRET_ACCESS_KEY = defaults.s3_key
 AWS_S3_ENDPOINT_URL  = str(defaults.s3_endpointurl)

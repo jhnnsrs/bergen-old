@@ -7,16 +7,17 @@ from rest_framework.decorators import action
 
 from larvik.views import LarvikViewSet, LarvikJobViewSet
 from visualizers.serializers import *
+from trontheim.views import TaskPublishingViewSet, PublishingModelViewSet
 
 
-class VisualizerViewSet(LarvikViewSet):
+class VisualizerViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Visualizer.objects.all()
     serializer_class = VisualizerSerializer
 
-class ProfileViewSet(LarvikViewSet):
+class ProfileViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -31,7 +32,7 @@ class ProfileViewSet(LarvikViewSet):
         profile: Profile = self.get_object()
         return HttpResponseRedirect(profile.htmlfile.url)
 
-class ExcelExportViewSet(LarvikViewSet):
+class ExcelExportViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -48,7 +49,7 @@ class ExcelExportViewSet(LarvikViewSet):
 
 
 
-class VisualizingViewSet(LarvikJobViewSet):
+class VisualizingViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     queryset = Visualizing.objects.all()

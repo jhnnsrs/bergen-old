@@ -3,19 +3,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from drawing.models import LineROI
 from drawing.serializers import LineROISerializer
-from larvik.views import LarvikViewSet
+from trontheim.views import PublishingModelViewSet
 
 
-class LineROIViewSet(LarvikViewSet):
+class LineROIViewSet(PublishingModelViewSet):
     queryset = LineROI.objects.all()
     serializer_class = LineROISerializer
     publishers = [["nodeid",]]
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ("representation","creator")
-
-
-
-
-
-
-

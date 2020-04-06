@@ -5,9 +5,9 @@ from evaluators.models import Evaluator, Data, Evaluating, VolumeData, ClusterDa
 from evaluators.serializers import EvaluatorSerializer, DataSerializer, EvaluatingSerializer, VolumeDataSerializer, \
     ClusterDataSerializer, LengthDataSerializer
 from larvik.views import LarvikJobViewSet, LarvikViewSet
+from trontheim.views import PublishingModelViewSet, TaskPublishingViewSet
 
-
-class EvaluatorViewSet(LarvikViewSet):
+class EvaluatorViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -15,7 +15,7 @@ class EvaluatorViewSet(LarvikViewSet):
     serializer_class = EvaluatorSerializer
 
 
-class DataViewSet(LarvikViewSet):
+class DataViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -25,21 +25,21 @@ class DataViewSet(LarvikViewSet):
     publishers = [["sample"],["transformation"]]
 
 
-class VolumeDataViewSet(LarvikViewSet):
+class VolumeDataViewSet(PublishingModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ["transformation","roi"]
     queryset = VolumeData.objects.all()
     serializer_class = VolumeDataSerializer
     publishers = [["sample"],["transformation"]]
 
-class ClusterDataViewSet(LarvikViewSet):
+class ClusterDataViewSet(PublishingModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ["transformation","roi"]
     queryset = ClusterData.objects.all()
     serializer_class = ClusterDataSerializer
     publishers = [["sample"],["transformation"]]
 
-class LengthDataViewSet(LarvikViewSet):
+class LengthDataViewSet(PublishingModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ["transformation","roi"]
     queryset = LengthData.objects.all()
@@ -47,7 +47,7 @@ class LengthDataViewSet(LarvikViewSet):
     publishers = [["sample"],["transformation"]]
 
 
-class EvaluatingViewSet(LarvikJobViewSet):
+class EvaluatingViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     queryset = Evaluating.objects.all()
