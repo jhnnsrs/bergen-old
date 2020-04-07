@@ -38,7 +38,7 @@ services:
       - "traefik.http.routers.minio.rule=PathPrefix(`/minio`) || Host(`minio.localhost`)"
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
     volumes:
-        - teesting:/export
+        - ./export:/export
   traefik:
     image: traefik:v2.2
     command:
