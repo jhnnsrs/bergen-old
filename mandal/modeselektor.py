@@ -78,6 +78,12 @@ class ArnheimDefaults:
         self.printLogo()
         # ENVIRONMENT SETTINGS
 
+        storage = os.getenv("ARNHEIM_STORAGE",storage)
+        db = os.getenv("ARNHEIM_DB",db)
+        dask = os.getenv("ARNHEIM_DASK",dask)
+        channel = os.getenv("ARNHEIM_CHANNEL",channel)
+        environment = os.getenv("ARNHEIM_ENVIRONMENT",environment)
+
         
 
         if environment == "SUPERDEBUG" :
