@@ -4,7 +4,7 @@ import logging
 import xarray as xr
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
-
+import pandas as pd
 # Get an instance of a logger
 from larvik.generators import ArnheimGenerator
 
@@ -35,8 +35,15 @@ class LarvikArrayManager(Manager):
 
 
     def from_xarray(self, array: xr.DataArray, **kwargs):
-        # Do some extra stuff here on the submitted data before saving...
-        # For example...
+        """Takes an DataArray and the model arguments and returns the created Model
+        
+        Arguments:
+            array {xr.DataArray} -- An xr.DataArray as a LarvikArray
+        
+        Returns:
+            [models.Model] -- [The Model]
+        """
+        import larvik.extenders as e
 
         item = self.model(**kwargs)
         generated = self.generatorClass(item, self.group)
@@ -44,7 +51,17 @@ class LarvikArrayManager(Manager):
 
         # Store Generation
         item.store.name = generated.path
-        item.shape = json.dumps(array.shape)
+        item.shape = list(array.shape)
+        item.dims = list(array.dims)
+
+        try: 
+            df = array.biometa.channels.compute()
+            channels = df.where(pd.notnull(df), None).to_dict('records')
+            item.channels = channels
+        except:
+            logger.info("Representation does not Contain Channels?")
+            
+
 
         # Actually Saving
         item.store.dump(array)

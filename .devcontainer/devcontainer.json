@@ -28,7 +28,8 @@
 	"extensions": [
 		"ms-python.python",
 		"donjayamanne.python-extension-pack",
-		"brainfit.vscode-importmagic"
+		"brainfit.vscode-importmagic",
+		"njpwerner.autodocstring"
 
 	]
 

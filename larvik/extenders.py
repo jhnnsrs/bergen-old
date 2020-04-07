@@ -5,7 +5,7 @@ import dask.dataframe as dd
 from larvik.logging import get_module_logger
 from django.conf import settings
 
-arnheim_debug = settings.ARNHEIM_DEBUG
+arnheim_debug = settings.DEBUG
 logger = get_module_logger(__name__)
 
 if arnheim_debug:
@@ -122,4 +122,4 @@ class MetaAccessor:
             plot = image.plot.imshow(ax= ax)
 
         ax.set_title(channelname)
-        return plot
+        return fig

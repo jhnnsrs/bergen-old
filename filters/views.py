@@ -4,9 +4,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from filters.models import Filter, Filtering
 from filters.serializers import FilterSerializer, FilteringSerializer
 from larvik.views import LarvikViewSet, LarvikJobViewSet
+from trontheim.views import TaskPublishingViewSet, PublishingModelViewSet
 
-
-class FilterViewSet(LarvikViewSet):
+class FilterViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -16,7 +16,7 @@ class FilterViewSet(LarvikViewSet):
 
 
 
-class FilteringViewSet(LarvikJobViewSet):
+class FilteringViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     filter_backends = (DjangoFilterBackend,)

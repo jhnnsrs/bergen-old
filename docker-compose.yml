@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:12.2-alpine
     volumes:
-      - nanadata:/var/lib/postgresql/data
+      - tutor:/var/lib/postgresql/data
     env_file:
       - arnheim.env
   redis:
@@ -12,6 +12,9 @@ services:
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/bergen
+      - media:/bergen/media
     env_file:
       - arnheim.env
       - development.env
@@ -35,7 +38,7 @@ services:
       - "traefik.http.routers.minio.rule=PathPrefix(`/minio`) || Host(`minio.localhost`)"
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
     volumes:
-        - objects:/export
+        - teesting:/export
   traefik:
     image: traefik:v2.2
     command:
@@ -55,7 +58,7 @@ services:
 
 volumes:
   vscode:
-  nanadata:
-  objects:
+  tutor:
+  teesting:
   media:
   files:

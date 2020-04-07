@@ -5,19 +5,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from pandas import DataFrame
 from rest_framework.decorators import action
 
-from answers.models import Answering, Oracle, Answer, Question
-from answers.serializers import AnsweringSerializer, AnswerSerializer, OracleSerializer, QuestionSerializer
-from larvik.views import LarvikViewSet, LarvikJobViewSet
+from answers.models import Answer, Answering, Oracle, Question
+from answers.serializers import (AnsweringSerializer, AnswerSerializer,
+                                 OracleSerializer, QuestionSerializer)
+from trontheim.views import TaskPublishingViewSet, PublishingModelViewSet
 
 
-class OracleViewSet(LarvikViewSet):
+class OracleViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Oracle.objects.all()
     serializer_class = OracleSerializer
 
-class QuestionViewSet(LarvikViewSet):
+class QuestionViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -28,7 +29,7 @@ class QuestionViewSet(LarvikViewSet):
     publishers = [["creator"], ["nodeid"]]
 
 
-class AnswerViewSet(LarvikViewSet):
+class AnswerViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -48,15 +49,7 @@ class AnswerViewSet(LarvikViewSet):
         response['Content-Disposition'] = 'attachment; filename="{0}.csv"'.format(answer.name)
         return response
 
-    @action(methods=['get'], detail=True,
-            url_path='profiled', url_name='profiled')
-    def profile(filename):
-        response = HttpResponse(mimetype="text/html")
-        for line in open(filename):
-            response.write(line)
-        return response
-
-class AnsweringViewSet(LarvikJobViewSet):
+class AnsweringViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     queryset = Answering.objects.all()

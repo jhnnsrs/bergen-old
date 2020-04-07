@@ -4,7 +4,7 @@ from rest_framework import viewsets
 
 from bioconverter.models import Analyzer
 from bioconverter.serializers import *
-from larvik.views import LarvikJobViewSet, LarvikViewSet
+from trontheim.views import TaskPublishingViewSet, PublishingModelViewSet
 
 
 class ConverterViewSet(viewsets.ModelViewSet):
@@ -15,7 +15,7 @@ class ConverterViewSet(viewsets.ModelViewSet):
     serializer_class = ConverterSerializer
 
 
-class ConversingViewSet(LarvikJobViewSet):
+class ConversingViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     queryset = Conversing.objects.all()
@@ -26,7 +26,7 @@ class ConversingViewSet(LarvikJobViewSet):
     channel = "bioconverter"
 
 
-class BioImageViewSet(LarvikViewSet):
+class BioImageViewSet(PublishingModelViewSet):
 
 
     filter_backends = (DjangoFilterBackend,)
@@ -37,7 +37,7 @@ class BioImageViewSet(LarvikViewSet):
 
 
 
-class BioSeriesViewSet(LarvikViewSet):
+class BioSeriesViewSet(PublishingModelViewSet):
 
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ("creator", "locker", "bioimage")
@@ -45,7 +45,7 @@ class BioSeriesViewSet(LarvikViewSet):
     serializer_class = BioSeriesSerializer
     publishers = [["experiment"]]
 
-class LockerViewSet(LarvikViewSet):
+class LockerViewSet(PublishingModelViewSet):
 
     queryset = Locker.objects.all()
     serializer_class = LockerSerializer
@@ -53,7 +53,7 @@ class LockerViewSet(LarvikViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ("creator",)
 
-class AnalyzingViewSet(LarvikJobViewSet):
+class AnalyzingViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     filter_backends = (DjangoFilterBackend,)
@@ -70,11 +70,9 @@ class AnalyzingViewSet(LarvikJobViewSet):
         return [self.create_job(data=serializer.data, job=serializer.data, channel=self.channel)]
 
 
-class AnalyzerViewSet(LarvikViewSet):
+class AnalyzerViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Analyzer.objects.all()
     serializer_class = AnalyzerSerializer
-
-

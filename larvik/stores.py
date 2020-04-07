@@ -88,7 +88,10 @@ class XArrayStore(FieldFile):
         return self._getStore()
 
     def dump(self, array, compute=True,name="data"):
-        return array.to_dataset(name=name).to_zarr(store=self.connected, mode="w", compute=compute)
+        return array.to_dataset(name=name).to_zarr(store=self.connected, mode="w", compute=compute, consolidated=True)
 
-    def load(self,name="data"):
+    def loadDataArray(self,name="data"):
         return xr.open_zarr(store=self.connected, consolidated=False)[name]
+
+    def loadDataset(self,name="data"):
+        return xr.open_zarr(store=self.connected, consolidated=False)

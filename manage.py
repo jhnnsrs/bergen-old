@@ -2,7 +2,6 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from django.conf import settings
 
 
 def main():
@@ -15,14 +14,6 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-
-    try:
-        import larvik.extenders as e
-    except ImportError as exc:
-        raise ImportError(
-            "No Larvik extensions Defined"
-        ) from exc
-
 
     execute_from_command_line(sys.argv)
 
