@@ -3,7 +3,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from filters.models import Filter, Filtering
 from filters.serializers import FilterSerializer, FilteringSerializer
-from larvik.views import LarvikViewSet, LarvikJobViewSet
 from trontheim.views import TaskPublishingViewSet, PublishingModelViewSet
 
 class FilterViewSet(PublishingModelViewSet):

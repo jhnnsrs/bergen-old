@@ -27,6 +27,9 @@ class ConversingViewSet(TaskPublishingViewSet):
 
 
 class BioImageViewSet(PublishingModelViewSet):
+    """This API-Endpoint accepts microscopy files,
+    that are parsable through the python-bioformats reader,
+    e.g. (Nikon nd2 files, Zeiss's cz,)"""
 
 
     filter_backends = (DjangoFilterBackend,)

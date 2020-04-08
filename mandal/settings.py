@@ -32,6 +32,9 @@ defaults = ArnheimDefaults()
 ZARR_COMPRESSION = defaults.zarr_compression
 ZARR_DTYPE = defaults.zarr_dtype
 
+# Larvik Related
+LARVIK_APIVERSION = "0.1"
+LARVIK_FILEVERSION = "0.1"
 
 
 
@@ -122,6 +125,7 @@ INSTALLED_APPS = [
     'revamper',
     'flow',
     'answers',
+    'test',
     'visualizers',
     'importer',
     'strainers',
@@ -179,8 +183,6 @@ GRAPHENE = {
         ]
 }
 
-
-DEFAULT_FILE_STORAGE = defaults.storage_default
 
 GRAPHENE_DJANGO_EXTRAS = {
     'DEFAULT_PAGINATION_CLASS': 'graphene_django_extras.paginations.LimitOffsetGraphqlPagination',

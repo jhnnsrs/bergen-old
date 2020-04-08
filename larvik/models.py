@@ -50,13 +50,15 @@ class LarvikConsumer(models.Model):
 
 
 class LarvikArrayBase(models.Model):
+    fileserializer = None
+
 
     store = StoreFileField(verbose_name="store",storage=get_default_storagemode().zarr(), upload_to="zarr", blank=True, null= True, help_text="The location of the Array on the Storage System (S3 or Media-URL)")
     shape = ShapeField(models.IntegerField(),help_text="The arrays shape")
     dims = DimsField(models.CharField(max_length=100),help_text="The arrays dimension")
     name = models.CharField(max_length=1000, blank=True, null= True,help_text="Cleartext name")
     signature = models.CharField(max_length=300,null=True, blank=True,help_text="The arrays unique signature")
-
+    unique = models.UUIDField(default=uuid.uuid4, editable=False)
 
     objects = LarvikArrayManager()
 
@@ -66,6 +68,7 @@ class LarvikArrayBase(models.Model):
 
     class Meta:
         abstract = True
+        
 
     @property
     def info(self):
@@ -96,6 +99,7 @@ class LarvikArrayBase(models.Model):
             return array
         else:
             raise NotImplementedError("This array does not have a store")
+
 
     @property
     def dataset(self):

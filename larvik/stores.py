@@ -1,21 +1,24 @@
 import traceback
 
+import s3fs
 import xarray as xr
+import zarr
+from django.db import models
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db.models.fields.files import FieldFile
-import zarr
-from larvik.logging import get_module_logger
 from storages.backends.s3boto3 import S3Boto3Storage
-import s3fs
-
 from zarr import blosc
+from django.core import serializers
+from larvik.logging import get_module_logger
+
 logger = get_module_logger(__name__)
 
 
 class LocalFile(object):
     def __init__(self, field, haspath=False):
         self.field = field
+        self.filename = None
         self.tmppath = "/tmp"
         self.haspath = haspath
 
@@ -61,6 +64,11 @@ blosc.use_threads = True
 
 zarr.storage.default_compressor = compressor
 
+class NotCompatibleException(Exception):
+    pass
+
+
+
 class XArrayStore(FieldFile):
 
     def _getStore(self):
@@ -87,11 +95,43 @@ class XArrayStore(FieldFile):
     def connected(self):
         return self._getStore()
 
-    def dump(self, array, compute=True,name="data"):
-        return array.to_dataset(name=name).to_zarr(store=self.connected, mode="w", compute=compute, consolidated=True)
+    def save(self, array, compute=True, apiversion = settings.LARVIK_APIVERSION, fileversion= settings.LARVIK_FILEVERSION):
+        if self.instance.unique is None: raise Exception("Please assign a Unique ID first")
+        dataset = None
+        if apiversion == "0.1":
+            dataset = array.to_dataset(name="data")
+            dataset.attrs["apiversion"] = apiversion
+            dataset.attrs["fileversion"] = fileversion
+            if fileversion == "0.1":
+                dataset.attrs["model"] = str(self.instance.__class__.__name__)
+                dataset.attrs["unique"] = str(self.instance.unique)
+            else:
+                raise NotImplementedError("This FileVersion has not been Implemented yet")
 
-    def loadDataArray(self,name="data"):
-        return xr.open_zarr(store=self.connected, consolidated=False)[name]
+        else:
+            raise NotImplementedError("This API Version has not been Implemented Yet")
 
-    def loadDataset(self,name="data"):
+        try:
+            logger.info(f"Saving File with API v.{apiversion}  and File v.{fileversion} ")
+            return dataset.to_zarr(store=self.connected, mode="w", compute=compute, consolidated=True)
+        except Exception as e:
+            raise e
+
+    def loadDataArray(self, apiversion = settings.LARVIK_APIVERSION):
+        dataset = xr.open_zarr(store=self.connected, consolidated=False)
+        fileversion = dataset.attrs["fileversion"]
+        fileapiversion = dataset.attrs["apiversion"]
+        if apiversion == "0.1":
+            if  fileapiversion == "0.1" and  fileversion == "0.1":
+                logger.info(f"Opening File with API v.{apiversion}  and File v.{fileversion} ")
+                import larvik.extenders as e
+                array = dataset["name"]
+                array.name = self.instance.name
+                return
+            else:
+                raise NotCompatibleException(f"The ApiVersion v.{apiversion} is not able to parse file with API v.{fileapiversion} and File v.{fileversion}")
+        else: NotImplementedError("This API Version has not been Implemented Yet")
+
+
+    def loadDataset(self):
         return xr.open_zarr(store=self.connected, consolidated=False)

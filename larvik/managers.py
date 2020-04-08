@@ -5,7 +5,9 @@ import xarray as xr
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
 import pandas as pd
+from django.conf import settings
 # Get an instance of a logger
+from uuid import uuid4
 from larvik.generators import ArnheimGenerator
 
 logger = logging.getLogger(__name__)
@@ -34,7 +36,7 @@ class LarvikArrayManager(Manager):
         return self.queryset(self.model, using=self._db)
 
 
-    def from_xarray(self, array: xr.DataArray, **kwargs):
+    def from_xarray(self, array: xr.DataArray, fileversion=settings.LARVIK_FILEVERSION, apiversion= settings.LARVIK_APIVERSION,**kwargs):
         """Takes an DataArray and the model arguments and returns the created Model
         
         Arguments:
@@ -64,7 +66,8 @@ class LarvikArrayManager(Manager):
 
 
         # Actually Saving
-        item.store.dump(array)
+        item.unique = uuid4()
+        item.store.save(array, item, fileversion=fileversion, apiversion= apiversion)
         item.save()
         return item
 

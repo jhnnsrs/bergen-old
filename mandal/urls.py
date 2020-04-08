@@ -42,6 +42,7 @@ import social.routes
 import strainers.routes
 import transformers.routes
 import visualizers.routes
+import test.routes
 
 
 class MyRouter(routers.DefaultRouter):
@@ -64,6 +65,7 @@ router.registry.extend(evaluators.routes.router.registry)
 router.registry.extend(mutaters.routes.router.registry)
 router.registry.extend(flow.routes.router.registry)
 router.registry.extend(revamper.routes.router.registry)
+router.registry.extend(test.routes.router.registry)
 
 
 # Bootstrap Backend

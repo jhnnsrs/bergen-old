@@ -19,7 +19,7 @@ channel_layer = get_channel_layer()
 from dask.distributed import LocalCluster
 cluster = LocalCluster()
 
-DEBUG = settings.ARNHEIM_DEBUG
+DEBUG = settings.DEBUG
 
 class LarvikError(Exception):
 
@@ -265,7 +265,7 @@ class SyncLarvikConsumer(SyncConsumer, NodeType, LarvikManager):
     def getRequest(self,data) -> LarvikJob:
         '''Should return a Function that returns the Model and not the Serialized instance'''
         if self.requestClass is None:
-            raise NotImplementedError("Please specifiy 'requestModel' or override getRequest")
+            raise NotImplementedError("Please specifiy 'requestClass' or override getRequest")
         else:
             return self.requestClass.objects.get(pk = data["id"])
 
@@ -275,16 +275,16 @@ class SyncLarvikConsumer(SyncConsumer, NodeType, LarvikManager):
 
     def updateStatus(self, status: LarvikStatus):
         # Classic Update Circle
-        if self.requestSerializer is None: self.requestSerializer = self.getSerializers()[type(self.request).__name__]
+        if self.requestClassSerializer is None: self.requestClassSerializer = self.getSerializers()[self.requestClass.__name__]
         self.request.statuscode = status.statuscode
         self.request.statusmessage = status.message
         self.request.save()
-        self.modelCreated(self.request, self.requestSerializer, "update")
+        self.modelCreated(self.request, self.requestClassSerializer, "update")
 
 
     def getDefaultSettings(self, request: models.Model) -> Dict:
         ''' Should return the Defaultsettings as a JSON parsable String'''
-        raise NotImplementedError
+        return {}
 
     def start(self,request: LarvikJob, settings: dict):
         raise NotImplementedError
