@@ -125,9 +125,9 @@ class XArrayStore(FieldFile):
             if  fileapiversion == "0.1" and  fileversion == "0.1":
                 logger.info(f"Opening File with API v.{apiversion}  and File v.{fileversion} ")
                 import larvik.extenders as e
-                array = dataset["name"]
+                array = dataset["data"]
                 array.name = self.instance.name
-                return
+                return array
             else:
                 raise NotCompatibleException(f"The ApiVersion v.{apiversion} is not able to parse file with API v.{fileapiversion} and File v.{fileversion}")
         else: NotImplementedError("This API Version has not been Implemented Yet")

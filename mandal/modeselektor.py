@@ -1,7 +1,4 @@
-"""NMOdule doctstring"""
 import os
-
-
 from larvik.logging import get_module_logger
 
 ARNHEIM_MODE = os.getenv("ARNHEIM_MODE", "S3_POSTGRES_LOCAL_REDIS_DEBUG")
@@ -185,7 +182,13 @@ class ArnheimDefaults:
             self.dask_mode = "LOCAL"
             self.dask_scheduler =  NOTSET
             self.dask_port = NOTSET
-            self.log(f"Dask ist no using Cluster")
+            self.log(f"Dask is using Local DEBUG")
+        
+        if dask == "TRHEADED":
+            self.dask_mode = "THREADED"
+            self.dask_scheduler =  NOTSET
+            self.dask_port = NOTSET
+            self.log(f"Dask is using Threaded Scheduler")
 
         if dask == "LOCALCLUSTER":
             self.dask_mode = "LOCALCLUSTER"
@@ -193,11 +196,11 @@ class ArnheimDefaults:
             self.dask_port = os.environ.get("DASK_SCHEDULER_SERVICE_PORT", 5432)
             self.log(f"Dask ist using Local Cluster")
 
-        if dask == "LOCALCLUSTER":
+        if dask == "DISTRIBUTED":
             self.dask_mode = "DISTRIBUTED"
             self.dask_scheduler =  os.environ.get("DASK_SCHEDULER_SERVICE_HOST", "localhost")
             self.dask_port = os.environ.get("DASK_SCHEDULER_SERVICE_PORT", 5432)
-            self.log(f"Dask ist using Distributed Cluster")
+            self.log(f"Dask ist using Distributed Cluster at {self.dask_scheduler} at Port {self.dask_port}")
 
         # Channel Settings
         if channel == "LOCAL":
@@ -249,3 +252,7 @@ class ArnheimDefaults:
     @property
     def s3_protocol(self):
         return 'http:'
+
+    @property
+    def dask_scheduler_address(self):
+        return self.dask_scheduler + ":" + self.dask_port

@@ -25,7 +25,7 @@ class TestingViewSet(TaskPublishingViewSet):
     publishers = [["creator"]]
     actionpublishers = {"result": [("listener",)]}
     # this publishers will be send to the Action Handles and then they can send to the according
-    channel = "test"
+    channel = "image"
 
     def preprocess_jobs(self, serializer):
         tester = Tester.objects.get(pk=serializer.data["tester"])

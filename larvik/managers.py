@@ -36,7 +36,7 @@ class LarvikArrayManager(Manager):
         return self.queryset(self.model, using=self._db)
 
 
-    def from_xarray(self, array: xr.DataArray, fileversion=settings.LARVIK_FILEVERSION, apiversion= settings.LARVIK_APIVERSION,**kwargs):
+    def from_xarray(self, array: xr.DataArray, fileversion=settings.LARVIK_FILEVERSION, apiversion= settings.LARVIK_APIVERSION, compute="True",**kwargs ):
         """Takes an DataArray and the model arguments and returns the created Model
         
         Arguments:
@@ -67,7 +67,10 @@ class LarvikArrayManager(Manager):
 
         # Actually Saving
         item.unique = uuid4()
-        item.store.save(array, item, fileversion=fileversion, apiversion= apiversion)
+        graph = item.store.save(array, compute=compute,fileversion=fileversion, apiversion= apiversion)
         item.save()
-        return item
+        if compute is True:
+            return item
+        else:
+            return item, graph
 

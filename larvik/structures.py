@@ -3,6 +3,7 @@ class StatusCode(object):
     DONE = 1000
     PROGRESS = 3000
     ERROR = 4000
+    WARNING = 5000
 
 
 class Messages(object):
@@ -30,6 +31,8 @@ class LarvikStatus(object):
 def larvikError(message = None):
     return LarvikStatus(StatusCode.ERROR,message)
 
+def larvikWarning(message = None):
+    return LarvikStatus(StatusCode.WARNING,message)
 
 def larvikProgress(message = None):
     return LarvikStatus(StatusCode.PROGRESS,message)
