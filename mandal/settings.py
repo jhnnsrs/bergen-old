@@ -32,6 +32,9 @@ defaults = ArnheimDefaults()
 ZARR_COMPRESSION = defaults.zarr_compression
 ZARR_DTYPE = defaults.zarr_dtype
 
+# Larvik Related
+LARVIK_APIVERSION = "0.1"
+LARVIK_FILEVERSION = "0.1"
 
 
 
@@ -58,8 +61,8 @@ MEDIA_ROOT = str(defaults.media_path)
 
 #S3 Settings
 S3_PUBLIC_DOMAIN = defaults.s3_public_domain
-AWS_ACCESS_KEY_ID = defaults.s3_secret
-AWS_SECRET_ACCESS_KEY = defaults.s3_key
+AWS_ACCESS_KEY_ID = defaults.s3_key
+AWS_SECRET_ACCESS_KEY = defaults.s3_secret
 AWS_S3_ENDPOINT_URL  = str(defaults.s3_endpointurl)
 AWS_STORAGE_BUCKET_NAME = "test"
 AWS_S3_URL_PROTOCOL = defaults.s3_protocol
@@ -122,6 +125,7 @@ INSTALLED_APPS = [
     'revamper',
     'flow',
     'answers',
+    'test',
     'visualizers',
     'importer',
     'strainers',
@@ -179,8 +183,6 @@ GRAPHENE = {
         ]
 }
 
-
-DEFAULT_FILE_STORAGE = defaults.storage_default
 
 GRAPHENE_DJANGO_EXTRAS = {
     'DEFAULT_PAGINATION_CLASS': 'graphene_django_extras.paginations.LimitOffsetGraphqlPagination',

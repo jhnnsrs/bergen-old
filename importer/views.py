@@ -1,12 +1,11 @@
 # Create your views here.
 # Create your views here.
-
+from importer.models import * 
 from importer.policies import *
 from importer.serializers import *
-from larvik.views import LarvikViewSet, LarvikJobViewSet
+from trontheim.views import TaskPublishingViewSet, PublishingModelViewSet
 
-
-class ImporterViewSet(LarvikViewSet):
+class ImporterViewSet(PublishingModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -15,7 +14,7 @@ class ImporterViewSet(LarvikViewSet):
 
 
 
-class ImportingViewSet(LarvikJobViewSet):
+class ImportingViewSet(TaskPublishingViewSet):
     '''Enables publishing to the channel Layed.
     Publishers musst be Provided'''
     queryset = Importing.objects.all()

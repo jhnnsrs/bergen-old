@@ -1,7 +1,6 @@
+"""NMOdule doctstring"""
 import os
 
-from distributed.cli import dask_scheduler
-from pandas.core.common import is_true_slices
 
 from larvik.logging import get_module_logger
 

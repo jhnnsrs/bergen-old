@@ -22,6 +22,8 @@ def setDiscover(mode):
 
 NODES = {}
 
+NonePath = "NO PATH APPLICABLE"
+
 logger = get_module_logger(__file__)
 
 def createUniqeNodeName(channel=None):
@@ -60,8 +62,11 @@ class register_consumer(object):
         return json.dumps([input.lower() if isinstance(input,str) else input.__name__.lower() for input in puts]) if puts is not None else json.dumps([])
 
     def __call__(self, cls: NodeType):
-        self.name = cls.name if cls.name is not None else cls.channel
-        self.path = cls.path if cls.path is not None else cls.name
+        self.name = cls.name if cls.name is not None else self.channel
+        if cls.path is not None :
+            self.path = cls.path 
+        else:
+            raise NotImplementedError(f"Please specify a path in {repr(cls)}")
         self.type = cls.type if cls.type is not None else "consumer"
         self.inputmodel = self.getModelForPuts(cls.inputs)
         self.outputmodel = self.getModelForPuts(cls.outputs)
